@@ -2,6 +2,7 @@ import { Card, Col, Flex, Row } from 'antd';
 import SubsynthController from './SubsynthController';
 import { synthState } from '../../state/Synth/synthState';
 import EnvelopeController from './EnvelopeController';
+import LFOController from './LFOController';
 
 export default function SynthTab() {
   return (
@@ -20,7 +21,7 @@ export default function SynthTab() {
           </Card>
         </Col>
         <Col span={5}>
-          <Card title="Filter" style={{ height: '100%' }}></Card>
+          <Card title="Master EQ" style={{ height: '100%' }}></Card>
         </Col>
       </Row>
       <Row style={{ height: '100%' }}>
@@ -30,7 +31,9 @@ export default function SynthTab() {
           </Card>
         </Col>
         <Col span={19}>
-          <Card title="LFO" style={{ height: '100%' }}></Card>
+          <Card title="LFO" style={{ height: '100%' }}>
+            <LFOController />
+          </Card>
         </Col>
       </Row>
     </>

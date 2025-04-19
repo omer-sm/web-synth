@@ -1,6 +1,7 @@
 import { Gain, ToneAudioNode, ToneAudioNodeOptions } from 'tone';
 import { ToneWithContextOptions } from 'tone/build/esm/core/context/ToneWithContext';
 import { Effect, EffectOptions } from 'tone/build/esm/effect/Effect';
+import { LFO, LFOOptions } from 'tone';
 
 export interface SynthEffect {
   id: number | 'input' | 'output';
@@ -15,6 +16,7 @@ export default class EffectChain extends ToneAudioNode<ToneAudioNodeOptions> {
   readonly name: string = 'EffectChain';
   effects: Map<SynthEffect['id'], SynthEffect>;
   effectIdCounter: number;
+  lfo: LFO | null = null;
 
   constructor(options: ToneAudioNodeOptions) {
     super(options);
@@ -24,6 +26,7 @@ export default class EffectChain extends ToneAudioNode<ToneAudioNodeOptions> {
     this.effects = new Map<SynthEffect['id'], SynthEffect>();
     this.addEffect(this.input, 'input');
     this.addEffect(this.output, 'output');
+    this.addLFO({});
 
     this.addConnection('input', 'output');
   }
@@ -112,7 +115,38 @@ export default class EffectChain extends ToneAudioNode<ToneAudioNodeOptions> {
       effect.node.dispose();
     });
     this.effects.clear();
+    this.disposeLFO();
 
     return super.dispose();
+  }
+
+  addLFO(options: Partial<LFOOptions>): void {
+    if (this.lfo) {
+      this.lfo.dispose();
+    }
+    this.lfo = new LFO(options.frequency ?? '4n', options.min ?? -12, options.max ?? 0);
+    this.lfo.start();
+  }
+
+  connectLFOToEffect(effectId: SynthEffect['id'], param: string): void {
+    if (!this.lfo) {
+      throw new Error('LFO has not been initialized.');
+    }
+
+    const effect = this.effects.get(effectId)?.node;
+
+    if (!effect) {
+      throw new Error(`Invalid effect id: ${effectId}`);
+    }
+
+    //@ts-expect-error param is string
+    this.lfo.connect(effect[param]);
+  }
+
+  disposeLFO(): void {
+    if (this.lfo) {
+      this.lfo.dispose();
+      this.lfo = null;
+    }
   }
 }
